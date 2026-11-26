@@ -257,25 +257,87 @@ elif page == "Pass / Fail Classification":
 
 
 elif page == "Student Clustering":
-    st.subheader("Student Performance Clustering")
+
+    st.subheader("Interactive Student Performance Clustering")
+
+    st.write("Change the number of clusters to explore different student groups.")
+
     cluster_features = ["attendance", "study_hours", "final_score"]
+
+    # Select number of clusters
+    n_clusters = st.slider(
+        "Select Number of Student Groups",
+        min_value=2,
+        max_value=6,
+        value=3
+    )
+
     scaler = StandardScaler()
     scaled = scaler.fit_transform(df[cluster_features])
-    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+
+    kmeans = KMeans(
+        n_clusters=n_clusters,
+        random_state=42,
+        n_init=10
+    )
+
     clustered = df.copy()
     clustered["cluster"] = kmeans.fit_predict(scaled)
-    st.write("Average values for each cluster")
-    st.dataframe(clustered.groupby("cluster")[cluster_features].mean().round(2))
-    fig, ax = plt.subplots(figsize=(8, 5))
-    scatter = ax.scatter(
-        clustered["study_hours"], clustered["final_score"],
-        c=clustered["cluster"], cmap="viridis", alpha=0.7
+
+    st.success(f"Students divided into {n_clusters} groups.")
+
+    st.subheader("Cluster Summary")
+
+    summary = clustered.groupby("cluster").agg(
+        Students=("cluster", "count"),
+        Average_Attendance=("attendance", "mean"),
+        Average_Study_Hours=("study_hours", "mean"),
+        Average_Final_Score=("final_score", "mean")
+    ).round(2)
+
+    st.dataframe(summary, use_container_width=True)
+
+    st.subheader("Interactive Cluster Chart")
+
+    x_axis = st.selectbox(
+        "Choose X-axis",
+        ["attendance", "study_hours", "final_score"]
     )
-    ax.set_xlabel("Study Hours")
-    ax.set_ylabel("Final Score")
+
+    y_axis = st.selectbox(
+        "Choose Y-axis",
+        ["final_score", "attendance", "study_hours"]
+    )
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    scatter = ax.scatter(
+        clustered[x_axis],
+        clustered[y_axis],
+        c=clustered["cluster"],
+        cmap="viridis",
+        alpha=0.7
+    )
+
+    ax.set_xlabel(x_axis)
+    ax.set_ylabel(y_axis)
     ax.set_title("Student Performance Clusters")
+
     fig.colorbar(scatter, ax=ax, label="Cluster")
     st.pyplot(fig)
+
+    st.subheader("View Students in a Group")
+
+    selected_cluster = st.selectbox(
+        "Select Student Group",
+        sorted(clustered["cluster"].unique())
+    )
+
+    st.dataframe(
+        clustered[clustered["cluster"] == selected_cluster],
+        use_container_width=True
+    )
+
 
 elif page == "Course Recommendation":
     st.subheader("Course Recommendation System")

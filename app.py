@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -340,29 +341,72 @@ elif page == "Student Clustering":
 
 
 elif page == "Course Recommendation":
-    st.subheader("Course Recommendation System")
+  
+    st.subheader("Personalized Course Recommendation System")
+
+    st.write("Enter your interests and select your preferred learning area.")
+
+    interest = st.text_area(
+        "Describe your interests or skills",
+        placeholder="Example: I know Python and I am interested in AI and Data Science"
+    )
+
+    category = st.selectbox(
+        "Select your preferred category",
+        ["All Categories", "Programming", "Artificial Intelligence",
+         "Data Science", "Cybersecurity", "Cloud Computing"]
+    )
+
+    number = st.slider(
+        "Number of recommendations",
+        min_value=1,
+        max_value=8,
+        value=3
+    )
+
     courses = {
-        "Python Programming": "python coding programming basics software development",
-        "Machine Learning": "machine learning artificial intelligence prediction models",
-        "Data Science": "data science statistics analytics visualization pandas",
-        "Cybersecurity": "cybersecurity network security threat detection",
-        "Cloud Computing": "cloud computing aws azure deployment storage",
-        "Deep Learning": "deep learning neural networks tensorflow keras",
-        "Natural Language Processing": "nlp text processing sentiment chatbot language",
-        "Computer Vision": "computer vision image processing opencv images"
+        "Python Programming": ("Programming", "python coding programming basics software development"),
+        "Machine Learning": ("Artificial Intelligence", "machine learning artificial intelligence prediction models"),
+        "Data Science": ("Data Science", "data science statistics analytics visualization pandas"),
+        "Cybersecurity": ("Cybersecurity", "cybersecurity network security threat detection"),
+        "Cloud Computing": ("Cloud Computing", "cloud computing aws azure deployment storage"),
+        "Deep Learning": ("Artificial Intelligence", "deep learning neural networks tensorflow keras"),
+        "Natural Language Processing": ("Artificial Intelligence", "nlp text processing sentiment chatbot language"),
+        "Computer Vision": ("Artificial Intelligence", "computer vision image processing opencv images")
     }
-    interest = st.text_area("Describe your interests", "I am interested in Python coding and artificial intelligence")
+
     if st.button("Recommend Courses", type="primary"):
+
         if interest.strip():
-            names = list(courses.keys())
-            descriptions = list(courses.values())
+
+            filtered_courses = {
+                name: details for name, details in courses.items()
+                if category == "All Categories"
+                or details[0] == category
+            }
+
+            names = list(filtered_courses.keys())
+            descriptions = [details[1] for details in filtered_courses.values()]
+
             vectorizer = TfidfVectorizer()
             matrix = vectorizer.fit_transform(descriptions + [interest])
-            scores = cosine_similarity(matrix[-1], matrix[:-1]).flatten()
-            top = scores.argsort()[::-1][:3]
+
+            scores = cosine_similarity(
+                matrix[-1], matrix[:-1]
+            ).flatten()
+
+            top = scores.argsort()[::-1][:number]
+
+            st.subheader("Your Recommended Courses")
+
             for idx in top:
-                st.write(f"**{names[idx]}** — Similarity score: {scores[idx]:.2f}")
+                st.success(
+                    f"{names[idx]} — Match Score: {scores[idx] * 100:.1f}%"
+                )
+
         else:
+            st.warning("Please enter your interests first.")
+
             st.warning("Please enter your interests.")
 
 elif page == "Feedback Sentiment":

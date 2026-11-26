@@ -431,24 +431,65 @@ elif page == "Feedback Sentiment":
             st.warning("Please enter feedback.")
 
 elif page == "Student Chatbot":
-    st.subheader("Student Support Chatbot")
+    st.subheader("🎓 AI Student Support Chatbot")
+    st.write("Ask questions about academics, attendance, marks, courses and study tips.")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
     def chatbot(question):
         question = question.lower()
+
         if "attendance" in question:
-            return "Maintain good attendance and attend classes regularly."
+            return "Maintain at least 75% attendance. Attend classes regularly and avoid unnecessary absences."
+
         elif "marks" in question or "score" in question:
-            return "Review your academic performance and focus on areas that need improvement."
+            return "Review your previous marks, practise important questions and focus on subjects where you need improvement."
+
         elif "python" in question:
-            return "Start with variables, loops, functions, lists and dictionaries."
+            return "Start learning Python with variables, data types, loops, functions, lists and dictionaries. Practise small programs daily."
+
         elif "course" in question:
-            return "You can explore Python, Data Science, Machine Learning and Cybersecurity."
-        return "I can answer questions about attendance, marks, Python and learning courses."
-    question = st.text_input("Ask a question")
-    if st.button("Send"):
-        if question.strip():
-            st.info(chatbot(question))
+            return "You can explore Python Programming, Data Science, Machine Learning, Cybersecurity and Cloud Computing."
+
+        elif "study" in question or "exam" in question:
+            return "Create a daily timetable, revise important topics, practise previous question papers and take short breaks."
+
+        elif "project" in question:
+            return "Choose a real-world problem, collect data, build your solution, test it and prepare a clear project presentation."
+
+        elif "hello" in question or "hi" in question:
+            return "Hello! Welcome to the Student Support Chatbot. How can I help you?"
+
         else:
-            st.warning("Please type a question.")
+            return "I can help with attendance, marks, Python, courses, exams and projects. Please ask me a question about these topics."
+
+    # Display previous messages
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    # Chat input
+    user_question = st.chat_input("Type your question here...")
+
+    if user_question:
+        st.session_state.chat_history.append({
+            "role": "user",
+            "content": user_question
+        })
+
+        answer = chatbot(user_question)
+
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": answer
+        })
+
+        st.rerun()
+
+    if st.button("Clear Chat"):
+        st.session_state.chat_history = []
+        st.rerun()
 
 elif page == "Suspicious Login Detection":
     st.subheader("Suspicious Login Detection")

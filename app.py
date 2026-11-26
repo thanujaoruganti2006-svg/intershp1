@@ -178,18 +178,83 @@ elif page == "Predict Final Score":
     m3.metric("R² Score", f"{regression_metrics['R² Score']:.3f}")
 
 elif page == "Pass / Fail Classification":
+    
     st.subheader("Pass / Fail Classification")
+
+    st.write("Enter student academic details to predict the result.")
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        attendance = st.number_input("Attendance (%)", 0, 100, 85)
+        study_hours = st.number_input("Study Hours per Day", 0, 24, 5)
+        assignment_score = st.number_input("Assignment Score", 0, 100, 80)
+
+    with c2:
+        previous_score = st.number_input("Previous Score", 0, 100, 75)
+        quiz_score = st.number_input("Quiz Score", 0, 100, 90)
+
+    model_name = st.selectbox(
+        "Choose Classification Model",
+        ["Logistic Regression", "Decision Tree", "Random Forest"]
+    )
+
+    if st.button("Predict Student Result", type="primary"):
+
+        selected_model = {
+            "Logistic Regression": None,
+            "Decision Tree": None,
+            "Random Forest": best_classifier
+        }
+
+        # Use the trained model selected by the user
+        X_train, X_test, y_train, y_test = train_test_split(
+            df[features], df["result"],
+            test_size=0.2, random_state=42,
+            stratify=df["result"]
+        )
+
+        if model_name == "Logistic Regression":
+            model = LogisticRegression(max_iter=1000)
+        elif model_name == "Decision Tree":
+            model = DecisionTreeClassifier(max_depth=5, random_state=42)
+        else:
+            model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+        model.fit(X_train, y_train)
+
+        student = pd.DataFrame([{
+            "attendance": attendance,
+            "study_hours": study_hours,
+            "assignment_score": assignment_score,
+            "previous_score": previous_score,
+            "quiz_score": quiz_score
+        }])
+
+        prediction = model.predict(student)[0]
+        probability = model.predict_proba(student)[0][1] * 100
+
+        if prediction == 1:
+            st.success("Predicted Result: PASS")
+        else:
+            st.error("Predicted Result: FAIL")
+
+        st.metric("Pass Probability", f"{probability:.2f}%")
+
+    st.subheader("Classification Model Evaluation")
     st.dataframe(classification_results.round(3), use_container_width=True)
+
     st.write("Confusion Matrix - Random Forest")
     fig, ax = plt.subplots(figsize=(5, 4))
     sns.heatmap(
         confusion_mat, annot=True, fmt="d", cmap="Blues",
-        xticklabels=["Fail", "Pass"], yticklabels=["Fail", "Pass"], ax=ax
+        xticklabels=["Fail", "Pass"],
+        yticklabels=["Fail", "Pass"], ax=ax
     )
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
     st.pyplot(fig)
-    st.caption("Pass is defined as a final score of 40 or above in this sample project.")
+
 
 elif page == "Student Clustering":
     st.subheader("Student Performance Clustering")

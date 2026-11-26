@@ -186,13 +186,13 @@ elif page == "Pass / Fail Classification":
     c1, c2 = st.columns(2)
 
     with c1:
-        attendance = st.number_input("Attendance (%)", 0, 100, 85)
-        study_hours = st.number_input("Study Hours per Day", 0, 24, 5)
-        assignment_score = st.number_input("Assignment Score", 0, 100, 80)
+        attendance = st.slider("Attendance (%)", 0, 100, 85)
+        study_hours = st.slider("Study Hours per Day", 0, 24, 5)
+        assignment_score = st.slider("Assignment Score", 0, 100, 80)
 
     with c2:
-        previous_score = st.number_input("Previous Score", 0, 100, 75)
-        quiz_score = st.number_input("Quiz Score", 0, 100, 90)
+        previous_score = st.slider("Previous Score", 0, 100, 75)
+        quiz_score = st.slider("Quiz Score", 0, 100, 90)
 
     model_name = st.selectbox(
         "Choose Classification Model",
